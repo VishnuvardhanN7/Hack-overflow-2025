@@ -1,5 +1,5 @@
 .skills-page{
-  padding: 40px 70px 180px; /* more space so bottom nav doesn't cover content */
+  padding: 40px 70px 180px;
   max-width: 1180px;
   margin: 0 auto;
 }
@@ -70,77 +70,51 @@
   cursor: pointer;
 }
 
-.btn-soft{
-  height: 40px;
-  border-radius: 14px;
-  padding: 0 14px;
-  background: rgba(59,130,246,0.25);
-  border: 1px solid rgba(59,130,246,0.35);
-  color: rgba(255,255,255,0.92);
-  font-weight: 650;
-  cursor: pointer;
+.btn-primary:disabled{
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .hint{
-  opacity: 0.8;
+  opacity: 0.85;
   font-size: 13px;
 }
 
-/* Autocomplete dropdown */
-.autocomplete{
-  position: relative;
+/* Verified skills */
+.verified-row{
+  border-bottom: none !important;
+  padding: 16px !important;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-.dropdown{
-  position: absolute;
-  top: 52px;
-  left: 0;
-  width: min(560px, 100%);
-  background: rgba(10, 18, 35, 0.92);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  overflow: hidden;
-  z-index: 50;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.65);
-}
-
-.dropdown-item{
-  width: 100%;
-  text-align: left;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.92);
-  cursor: pointer;
-}
-
-.dropdown-item:hover{
-  background: rgba(59,130,246,0.22);
-}
-
-/* Skill rows */
 .skill-row{
   display: grid;
   grid-template-columns: 1fr 2fr auto;
-  align-items: center;
+  align-items: start;
   gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
-.skill-row:last-child{ border-bottom: none; }
-.skill-name{ font-weight: 550; opacity: 0.95; }
+.skill-name{
+  font-weight: 650;
+  opacity: 0.95;
+}
 
-.skill-score{
+.skill-badge{
+  opacity: 0.95;
+}
+
+.skill-badge-score{
+  color: #60a5fa;
+  font-weight: 800;
+}
+
+.skill-summary{
+  margin-top: 6px;
   opacity: 0.75;
   font-size: 13px;
-  min-width: 34px;
-  text-align: right;
-}
-
-.skill-row input[type="range"]{
-  width: 100%;
-  accent-color: #3b82f6;
+  line-height: 1.35;
 }
 
 .skill-actions{
@@ -173,6 +147,7 @@
 }
 
 .roadmap-step:last-child{ margin-bottom: 0; }
+
 .roadmap-left{ display: flex; flex-direction: column; gap: 6px; }
 .roadmap-title{ font-weight: 650; }
 .roadmap-detail{ opacity: 0.7; font-size: 13px; }
@@ -190,7 +165,5 @@
 @media (max-width: 900px){
   .skills-page{ padding: 24px 18px 170px; }
   .skill-row{ grid-template-columns: 1fr; gap: 10px; }
-  .skill-score{ text-align: left; }
   .roadmap-step{ flex-direction: column; align-items: flex-start; gap: 12px; }
-  .dropdown{ width: 100%; }
 }

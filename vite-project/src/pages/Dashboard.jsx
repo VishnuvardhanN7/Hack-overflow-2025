@@ -3,13 +3,12 @@ import ScoreRing from "../components/ScoreRing";
 import SkillCard from "../components/SkillCard";
 import RecommendationCard from "../components/RecommendationCard";
 import JobCard from "../components/JobCard";
-import { calculateScore, generateRoadmap } from "../utils/scoreUtils";
-import { roleProfiles } from "../data/roleProfiles";
+import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import { studentData } from "../data/studentData";
 import "../styles/dashboard.css";
 
 const LS_SKILLS = "skills";
-const LS_ROLE = "goalRole";
+const LS_ROADMAP = "roadmap";
 
 function safeJson(raw, fallback) {
   try {
@@ -21,44 +20,63 @@ function safeJson(raw, fallback) {
 }
 
 export default function Dashboard() {
-  const [goalRole, setGoalRole] = useState("Backend Developer");
   const [skills, setSkills] = useState([]);
+  const [roadmap, setRoadmap] = useState([]);
 
   useEffect(() => {
-    const savedRole = localStorage.getItem(LS_ROLE);
-    if (savedRole && roleProfiles[savedRole]) setGoalRole(savedRole);
+    const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), []);
+    const savedRoadmap = safeJson(localStorage.getItem(LS_ROADMAP), []);
 
-    const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), null);
-    if (Array.isArray(savedSkills)) setSkills(savedSkills);
-    else {
-      setSkills(studentData.skills || []);
-      localStorage.setItem(LS_SKILLS, JSON.stringify(studentData.skills || []));
-      if (!savedRole) localStorage.setItem(LS_ROLE, "Backend Developer");
-    }
+    setSkills(Array.isArray(savedSkills) ? savedSkills : []);
+    setRoadmap(Array.isArray(savedRoadmap) ? savedRoadmap : []);
   }, []);
 
-  const roleProfile = roleProfiles[goalRole];
-  const score = useMemo(() => calculateScore(skills, roleProfile), [skills, roleProfile]);
-  const roadmap = useMemo(() => generateRoadmap(skills, roleProfile), [skills, roleProfile]);
-  const nextAction = roadmap[0];
+  const verifiedSkills = useMemo(() => getVerifiedSkills(skills), [skills]);
+  const score = useMemo(() => calculateScore(skills), [skills]);
 
-  const sorted = useMemo(
-    () => [...skills].sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0)),
-    [skills]
-  );
+  const sorted = useMemo(() => {
+    return [...verifiedSkills].sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0));
+  }, [verifiedSkills]);
 
-  const top = sorted[0];
-  const verified = sorted[1];
-  const gap = [...skills].sort((a, b) => (Number(a.level) || 0) - (Number(b.level) || 0))[0];
+  const top = sorted[0] || null;
+  const second = sorted[1] || null;
+  const lowest = useMemo(() => {
+    if (!verifiedSkills.length) return null;
+    return [...verifiedSkills].sort((a, b) => (Number(a.level) || 0) - (Number(b.level) || 0))[0];
+  }, [verifiedSkills]);
+
+  const nextAction = roadmap?.[0];
+
+  const showInsights = verifiedSkills.length > 0;
+  const recTitle = nextAction?.title || "Verify your first project";
+  const recSubtitle =
+    nextAction?.detail ||
+    "Go to Roadmap, enter a skill name, upload a project ZIP, and get your verified score + learning roadmap.";
+  const recPoints = Number(nextAction?.points ?? 0);
 
   return (
     <div className="dashboard">
       <div className="dashboard-container">
         <div className="main-grid">
           <div className="left">
-            <SkillCard label="TOP STRENGTH" title={top?.name || "—"} score={Number(top?.level ?? 0)} type="good" />
-            <SkillCard label="VERIFIED" title={verified?.name || "—"} score={Number(verified?.level ?? 0)} type="good" />
-            <SkillCard label="CRITICAL GAP" title={gap?.name || "—"} score={Number(gap?.level ?? 0)} type="bad" />
+            <SkillCard
+              label="TOP VERIFIED SKILL"
+              title={showInsights ? top?.name : "—"}
+              score={showInsights ? Number(top?.level ?? 0) : null}
+              type="good"
+            />
+            <SkillCard
+              label="SECOND STRONGEST"
+              title={showInsights ? second?.name : "—"}
+              score={showInsights ? Number(second?.level ?? 0) : null}
+              type="good"
+            />
+            <SkillCard
+              label="LOWEST VERIFIED"
+              title={showInsights ? lowest?.name : "—"}
+              score={showInsights ? Number(lowest?.level ?? 0) : null}
+              type="bad"
+            />
           </div>
 
           <div className="score-container">
@@ -67,9 +85,9 @@ export default function Dashboard() {
 
           <div className="right">
             <RecommendationCard
-              title={nextAction?.title || "Add your skills to get a roadmap"}
-              subtitle={nextAction?.detail || `Go to Roadmap and set your goal role (current: ${goalRole}).`}
-              points={nextAction?.points || 0}
+              title={recTitle}
+              subtitle={recSubtitle}
+              points={recPoints}
               buttonText="Go to Roadmap"
               buttonHref="/roadmap"
             />
@@ -77,9 +95,16 @@ export default function Dashboard() {
         </div>
 
         <div className="matches-title">HIGH POTENTIAL MATCHES</div>
+
         <div className="jobs">
-          {(studentData.jobs || []).map((job) => (
-            <JobCard key={`${job.title}-${job.company}`} title={job.title} company={job.company} match={job.match} tags={job.tags} />
+          {(studentData?.jobs || []).map((job) => (
+            <JobCard
+              key={`${job.title}-${job.company}`}
+              title={job.title}
+              company={job.company}
+              match={job.match}
+              tags={job.tags}
+            />
           ))}
         </div>
       </div>

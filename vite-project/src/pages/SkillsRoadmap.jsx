@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { skillLibrary } from "../data/skillLibrary";
-import { roleNames, roleProfiles } from "../data/roleProfiles";
-import SkillRow from "../components/SkillRow";
+import { useEffect, useMemo, useState } from "react";
 import RoadmapStep from "../components/RoadmapStep";
-import { calculateScore, generateRoadmap } from "../utils/scoreUtils";
+import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import "../styles/skills.css";
 
 const LS_SKILLS = "skills";
-const LS_ROLE = "goalRole";
+const LS_ROADMAP = "roadmap";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 function safeJson(raw, fallback) {
   try {
@@ -18,221 +16,199 @@ function safeJson(raw, fallback) {
   }
 }
 
-function flattenLibrary(lib) {
+function buildGlobalRoadmapFromSkills(skills) {
+  const verified = getVerifiedSkills(skills);
+
+  const all = [];
+  for (const s of verified) {
+    for (const step of s.roadmap || []) {
+      all.push({ ...step, _from: s.name });
+    }
+  }
+
+  // de-dupe by title (keep first occurrence)
   const out = [];
-  Object.values(lib || {}).forEach((arr) => (arr || []).forEach((s) => out.push(s)));
-  return [...new Set(out)].sort((a, b) => a.localeCompare(b));
+  const seen = new Set();
+  for (const step of all) {
+    if (!step?.title) continue;
+    if (seen.has(step.title)) continue;
+    seen.add(step.title);
+    out.push(step);
+  }
+  return out;
 }
 
 export default function SkillsRoadmap() {
-  const [goalRole, setGoalRole] = useState(roleNames[0] || "Backend Developer");
   const [skills, setSkills] = useState([]);
+  const [msg, setMsg] = useState("");
 
-  const [query, setQuery] = useState("");
-  const [pasteInput, setPasteInput] = useState("");
-  const [open, setOpen] = useState(false);
-
-  const wrapRef = useRef(null);
-
-  const allSkills = useMemo(() => flattenLibrary(skillLibrary), []);
-  const suggestions = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return allSkills
-      .filter((s) => s.toLowerCase().includes(q))
-      .slice(0, 10);
-  }, [query, allSkills]);
+  // verify form
+  const [skillName, setSkillName] = useState("");
+  const [projectZip, setProjectZip] = useState(null);
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const savedRole = localStorage.getItem(LS_ROLE);
-    if (savedRole && roleProfiles[savedRole]) setGoalRole(savedRole);
-
     const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), []);
     setSkills(Array.isArray(savedSkills) ? savedSkills : []);
   }, []);
 
-  useEffect(() => {
-    function onDocDown(e) {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onDocDown);
-    return () => document.removeEventListener("mousedown", onDocDown);
-  }, []);
+  const verifiedSkills = useMemo(() => getVerifiedSkills(skills), [skills]);
+  const roadmap = useMemo(() => buildGlobalRoadmapFromSkills(skills), [skills]);
+  const score = useMemo(() => calculateScore(skills), [skills]);
 
-  function persist(nextSkills, nextRole = goalRole) {
+  function persist(nextSkills) {
+    const nextRoadmap = buildGlobalRoadmapFromSkills(nextSkills);
     localStorage.setItem(LS_SKILLS, JSON.stringify(nextSkills));
-    localStorage.setItem(LS_ROLE, nextRole);
+    localStorage.setItem(LS_ROADMAP, JSON.stringify(nextRoadmap));
   }
 
-  function addSkill(name, level = 50) {
-    const cleaned = String(name || "").trim();
-    if (!cleaned) return;
-
-    if (skills.some((s) => String(s.name).toLowerCase() === cleaned.toLowerCase())) return;
-
-    const next = [...skills, { name: cleaned, level }];
-    setSkills(next);
-    persist(next);
-  }
-
-  function removeSkill(name) {
+  function removeVerifiedSkill(name) {
     const cleaned = String(name || "").toLowerCase().trim();
     const next = skills.filter((s) => String(s.name).toLowerCase() !== cleaned);
     setSkills(next);
     persist(next);
   }
 
-  function updateSkill(name, level) {
-    const next = skills.map((s) => (s.name === name ? { ...s, level } : s));
-    setSkills(next);
-    persist(next);
+  async function verifySkill() {
+    setMsg("");
+
+    const cleaned = String(skillName || "").trim();
+    if (!cleaned) return setMsg("Enter a skill name (e.g., JavaScript).");
+    if (!projectZip) return setMsg("Upload a project .zip file.");
+
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("skillName", cleaned);
+      fd.append("notes", notes);
+      fd.append("projectZip", projectZip);
+
+      const res = await fetch(`${API_BASE}/api/assess-skill`, {
+        method: "POST",
+        body: fd
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Verification failed");
+
+      const newSkill = {
+        name: cleaned,
+        verified: true,
+        level: Number(data.level) || 0,
+        summary: data.summary || "",
+        roadmap: Array.isArray(data.roadmap) ? data.roadmap : []
+      };
+
+      // Upsert (replace if same name exists)
+      const next = [
+        ...skills.filter((s) => String(s.name).toLowerCase() !== cleaned.toLowerCase()),
+        newSkill
+      ].sort((a, b) => a.name.localeCompare(b.name));
+
+      setSkills(next);
+      persist(next);
+
+      setMsg(`Verified ${cleaned}: ${newSkill.level}/100`);
+      setSkillName("");
+      setProjectZip(null);
+      setNotes("");
+    } catch (e) {
+      setMsg(e.message);
+    } finally {
+      setLoading(false);
+    }
   }
-
-  function addFromPaste() {
-    const raw = String(pasteInput || "").trim();
-    if (!raw) return;
-
-    const parts = raw
-      .split(/[\n,]+/g)
-      .map((s) => String(s).trim())
-      .filter(Boolean);
-
-    [...new Set(parts)].forEach((p) => addSkill(p, 50));
-    setPasteInput("");
-  }
-
-  const roleProfile = roleProfiles[goalRole];
-  const score = useMemo(() => calculateScore(skills, roleProfile), [skills, roleProfile]);
-  const roadmap = useMemo(() => generateRoadmap(skills, roleProfile), [skills, roleProfile]);
 
   return (
     <div className="skills-page">
-      <h1>Skills & Roadmap</h1>
+      <h1>Skills Verification & Roadmap</h1>
 
       <section>
-        <h2>SET YOUR GOAL</h2>
+        <h2>VERIFY A SKILL (PROJECT)</h2>
+
         <div className="form-row">
-          <select
+          <input
             className="input"
-            value={goalRole}
-            onChange={(e) => {
-              const nextRole = e.target.value;
-              setGoalRole(nextRole);
-              persist(skills, nextRole);
-            }}
-          >
-            {roleNames.map((r) => (
-              <option key={r} value={r} style={{ color: "#0b1220" }}>
-                {r}
-              </option>
-            ))}
-          </select>
+            value={skillName}
+            onChange={(e) => setSkillName(e.target.value)}
+            placeholder="Skill name (e.g., JavaScript, SQL, React)"
+          />
 
-          <div className="hint">
-            Readiness score: <b>{score}</b> / 1000
-          </div>
-        </div>
-      </section>
+          <input
+            className="input"
+            type="file"
+            accept=".zip"
+            onChange={(e) => setProjectZip(e.target.files?.[0] || null)}
+          />
 
-      <section>
-        <h2>ADD SKILLS (SEARCH OR PASTE)</h2>
-
-        <div className="autocomplete" ref={wrapRef}>
-          <div className="form-row">
-            <input
-              className="input"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setOpen(true);
-              }}
-              onFocus={() => setOpen(true)}
-              placeholder="Type a skill (e.g., SQL, React, Git)..."
-            />
-
-            <button
-              className="btn-primary"
-              onClick={() => {
-                addSkill(query, 50);
-                setQuery("");
-                setOpen(false);
-              }}
-            >
-              Add
-            </button>
-          </div>
-
-          {open && suggestions.length > 0 && (
-            <div className="dropdown">
-              {suggestions.map((s) => (
-                <button
-                  key={s}
-                  className="dropdown-item"
-                  onClick={() => {
-                    addSkill(s, 50);
-                    setQuery("");
-                    setOpen(false);
-                  }}
-                  type="button"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
+          <button className="btn-primary" type="button" onClick={verifySkill} disabled={loading}>
+            {loading ? "Verifying..." : "Verify"}
+          </button>
         </div>
 
         <textarea
           className="textarea"
           rows={3}
-          value={pasteInput}
-          onChange={(e) => setPasteInput(e.target.value)}
-          placeholder="Paste skills separated by commas or new lines"
+          placeholder="Notes (optional): what did you build, your role, tech stack…"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
         />
 
-        <div className="form-row">
-          <button className="btn-soft" onClick={addFromPaste}>
-            Add from text
-          </button>
-          <button
-            className="btn-soft"
-            onClick={() => {
-              setSkills([]);
-              persist([]);
-            }}
-          >
-            Clear all
-          </button>
+        {msg ? <div className="hint" style={{ marginTop: 10 }}>{msg}</div> : null}
+
+        <div style={{ marginTop: 14 }} className="hint">
+          {score == null ? (
+            <>Score: — (verify at least one project)</>
+          ) : (
+            <>Score: <b>{score}</b> / 1000</>
+          )}
         </div>
       </section>
 
       <section>
-        <h2>RATE YOUR SKILLS</h2>
-        {skills.length === 0 ? (
-          <p className="empty-text">Add skills above to generate your score and roadmap.</p>
+        <h2>VERIFIED SKILLS</h2>
+
+        {verifiedSkills.length === 0 ? (
+          <p className="empty-text">
+            No verified skills yet. Verify a project above to add your first skill and unlock your score + roadmap.
+          </p>
         ) : (
-          skills
-            .slice()
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((skill) => (
-              <SkillRow
-                key={skill.name}
-                skill={skill}
-                onChange={(lvl) => updateSkill(skill.name, lvl)}
-                onRemove={() => removeSkill(skill.name)}
-              />
-            ))
+          <div style={{ display: "grid", gap: 10 }}>
+            {verifiedSkills.map((s) => (
+              <div key={s.name} className="skill-row verified-row">
+                <div className="skill-name">{s.name}</div>
+
+                <div className="skill-badge">
+                  Verified: <span className="skill-badge-score">{Number(s.level)}/100</span>
+                  {s.summary ? <div className="skill-summary">{s.summary}</div> : null}
+                </div>
+
+                <div className="skill-actions">
+                  <button className="remove-btn" type="button" onClick={() => removeVerifiedSkill(s.name)} title="Remove">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 
       <section>
-        <h2>YOUR ROADMAP (NEXT ACTIONS)</h2>
+        <h2>YOUR ROADMAP (NEXT SKILLS)</h2>
+
         {roadmap.length === 0 ? (
-          <p className="empty-text">No gaps detected for this goal role.</p>
+          <p className="empty-text">Verify at least one skill to generate roadmap steps.</p>
         ) : (
-          roadmap.map((s) => (
-            <RoadmapStep key={s.key} title={s.title} detail={s.detail} points={s.points} completed={false} />
+          roadmap.map((s, i) => (
+            <RoadmapStep
+              key={`${s.title}-${i}`}
+              title={s.title}
+              detail={s.detail}
+              points={s.points}
+              completed={false}
+            />
           ))
         )}
       </section>
