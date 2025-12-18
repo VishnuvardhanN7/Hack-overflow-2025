@@ -1,0 +1,196 @@
+.skills-page{
+  padding: 40px 70px 180px; /* more space so bottom nav doesn't cover content */
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.skills-page h1{
+  margin: 18px 0 26px;
+  font-size: 28px;
+}
+
+.skills-page section{
+  background: rgba(18, 36, 68, 0.55);
+  backdrop-filter: blur(24px);
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 28px;
+  margin-bottom: 26px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+
+.skills-page h2{
+  font-size: 12px;
+  margin: 0 0 18px;
+  opacity: 0.7;
+  letter-spacing: 1px;
+}
+
+.empty-text{ opacity: 0.65; font-size: 14px; margin: 0; }
+
+/* Form */
+.form-row{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.input{
+  flex: 1 1 320px;
+  height: 44px;
+  border-radius: 14px;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.92);
+  outline: none;
+}
+
+.textarea{
+  width: 100%;
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.90);
+  outline: none;
+  resize: vertical;
+  margin-top: 12px;
+}
+
+.btn-primary{
+  height: 44px;
+  border-radius: 14px;
+  padding: 0 16px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.btn-soft{
+  height: 40px;
+  border-radius: 14px;
+  padding: 0 14px;
+  background: rgba(59,130,246,0.25);
+  border: 1px solid rgba(59,130,246,0.35);
+  color: rgba(255,255,255,0.92);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.hint{
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+/* Autocomplete dropdown */
+.autocomplete{
+  position: relative;
+}
+
+.dropdown{
+  position: absolute;
+  top: 52px;
+  left: 0;
+  width: min(560px, 100%);
+  background: rgba(10, 18, 35, 0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+}
+
+.dropdown-item{
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.92);
+  cursor: pointer;
+}
+
+.dropdown-item:hover{
+  background: rgba(59,130,246,0.22);
+}
+
+/* Skill rows */
+.skill-row{
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.skill-row:last-child{ border-bottom: none; }
+.skill-name{ font-weight: 550; opacity: 0.95; }
+
+.skill-score{
+  opacity: 0.75;
+  font-size: 13px;
+  min-width: 34px;
+  text-align: right;
+}
+
+.skill-row input[type="range"]{
+  width: 100%;
+  accent-color: #3b82f6;
+}
+
+.skill-actions{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.remove-btn{
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+}
+
+/* Roadmap */
+.roadmap-step{
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roadmap-step:last-child{ margin-bottom: 0; }
+.roadmap-left{ display: flex; flex-direction: column; gap: 6px; }
+.roadmap-title{ font-weight: 650; }
+.roadmap-detail{ opacity: 0.7; font-size: 13px; }
+.roadmap-points{ font-size: 12px; color: #60a5fa; }
+
+.roadmap-status{
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+  opacity: 0.85;
+}
+
+@media (max-width: 900px){
+  .skills-page{ padding: 24px 18px 170px; }
+  .skill-row{ grid-template-columns: 1fr; gap: 10px; }
+  .skill-score{ text-align: left; }
+  .roadmap-step{ flex-direction: column; align-items: flex-start; gap: 12px; }
+  .dropdown{ width: 100%; }
+}

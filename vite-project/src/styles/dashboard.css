@@ -1,0 +1,257 @@
+.dashboard{
+  padding: 30px 0 140px;
+}
+
+.dashboard-container{
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.main-grid{
+  display: grid;
+  grid-template-columns: 300px 1fr 320px;
+  gap: 58px;
+  align-items: center;
+  margin-top: 40px;
+}
+
+/* Skill cards */
+.skill-card{
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.skill-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.skill-label{
+  font-size: 11px;
+  opacity: 0.75;
+  letter-spacing: 1px;
+}
+
+.skill-label.good{ color: rgba(34,255,176,0.85); }
+.skill-label.bad{ color: rgba(255,176,32,0.95); }
+
+.skill-score{
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.skill-title{
+  font-size: 18px;
+  font-weight: 650;
+  margin-top: 12px;
+}
+
+.progress{
+  height: 6px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.progress-fill{
+  height: 100%;
+  border-radius: 999px;
+}
+
+.progress-fill.good{
+  background: linear-gradient(90deg, #22ffb0, #22c8ff);
+}
+
+.progress-fill.bad{
+  background: linear-gradient(90deg, #ffb020, #ff6b00);
+}
+
+/* Score ring */
+.score-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.score-ring{
+  width: 340px;
+  height: 340px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.ring-svg{ opacity: 0.96; }
+
+.score-text{
+  position: absolute;
+  text-align: center;
+}
+
+.star-badge{
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 8px;
+  background: rgba(59,130,246,0.22);
+  border: 1px solid rgba(59,130,246,0.30);
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+}
+
+.score-text h1{
+  font-size: 68px;
+  line-height: 1;
+  margin: 0;
+}
+
+.score-text span{
+  font-size: 12px;
+  opacity: 0.65;
+  letter-spacing: 1px;
+}
+
+.score-text p{
+  margin: 10px 0 0;
+  color: #60a5fa;
+  font-size: 13px;
+}
+
+/* Recommendation */
+.recommend{
+  padding: 30px;
+}
+
+.rec-header{
+  font-size: 12px;
+  color: #60a5fa;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pill{
+  background: rgba(59,130,246,0.20);
+  border: 1px solid rgba(59,130,246,0.25);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.recommend h3{
+  font-size: 26px;
+  margin: 18px 0 10px;
+}
+
+.recommend p{
+  opacity: 0.7;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.primary-btn{
+  margin-top: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #3b82f6;
+  border: none;
+  padding: 14px 18px;
+  border-radius: 14px;
+  color: white;
+  font-weight: 650;
+  width: 100%;
+}
+
+.primary-btn:hover{
+  filter: brightness(1.05);
+}
+
+.arrow{ opacity: 0.9; }
+
+/* Matches */
+.matches-title{
+  margin: 80px 0 22px;
+  font-size: 12px;
+  opacity: 0.6;
+  letter-spacing: 1.3px;
+  text-align: center;
+}
+
+.jobs{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+}
+
+.job{
+  padding: 26px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.job h4{
+  margin: 0;
+  font-size: 16px;
+}
+
+.job-company{
+  margin: 6px 0 12px;
+  opacity: 0.65;
+  font-size: 13px;
+}
+
+.tags{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag{
+  padding: 5px 12px;
+  font-size: 11px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.08);
+  opacity: 0.9;
+}
+
+.tag.warn{
+  background: rgba(255,176,32,0.14);
+  border-color: rgba(255,176,32,0.22);
+  color: rgba(255,176,32,0.95);
+}
+
+.match-ring{
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(34,255,176,0.35);
+  color: rgba(34,255,176,0.95);
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1100px){
+  .main-grid{
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .score-ring{
+    width: 320px;
+    height: 320px;
+    margin: 0 auto;
+  }
+  .jobs{ grid-template-columns: 1fr; }
+  .dashboard-container{ padding: 0 18px; }
+}
