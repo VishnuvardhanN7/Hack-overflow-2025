@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import RoadmapStep from "../components/RoadmapStep";
 import SkillRow from "../components/SkillRow";
-
 import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import "../styles/skills.css";
 
@@ -21,9 +20,14 @@ function safeJson(raw, fallback) {
 function buildGlobalRoadmapFromSkills(skills) {
   const verified = getVerifiedSkills(skills);
   const all = [];
+
   for (const s of verified) {
-    for (const step of s.roadmap || []) all.push({ ...step, _from: s.name });
+    for (const step of s.roadmap || []) {
+      all.push({ ...step, _from: s.name });
+    }
   }
+
+  // De-dupe by title (keep first occurrence)
   const out = [];
   const seen = new Set();
   for (const step of all) {
@@ -44,6 +48,8 @@ export default function SkillsRoadmap() {
   const [projectZip, setProjectZip] = useState(null);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const fileRef = useRef(null);
 
   useEffect(() => {
     const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), []);
@@ -70,6 +76,7 @@ export default function SkillsRoadmap() {
   async function verifySkill() {
     setMsg("");
     const cleaned = String(skillName || "").trim();
+
     if (!cleaned) return setMsg("Enter a skill name (e.g., JavaScript).");
     if (!projectZip) return setMsg("Upload a project .zip file.");
 
@@ -80,7 +87,11 @@ export default function SkillsRoadmap() {
       fd.append("notes", notes);
       fd.append("projectZip", projectZip);
 
-      const res = await fetch(`${API_BASE}/api/assess-skill`, { method: "POST", body: fd });
+      const res = await fetch(`${API_BASE}/api/assess-skill`, {
+        method: "POST",
+        body: fd,
+      });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Verification failed");
 
@@ -92,8 +103,11 @@ export default function SkillsRoadmap() {
         roadmap: Array.isArray(data.roadmap) ? data.roadmap : [],
       };
 
+      // upsert (replace if same name exists)
       const next = [
-        ...skills.filter((s) => String(s.name).toLowerCase() !== cleaned.toLowerCase()),
+        ...skills.filter(
+          (s) => String(s.name).toLowerCase() !== cleaned.toLowerCase()
+        ),
         newSkill,
       ].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -101,9 +115,11 @@ export default function SkillsRoadmap() {
       persist(next);
 
       setMsg(`Verified ${cleaned}: ${newSkill.level}/100`);
+
       setSkillName("");
       setProjectZip(null);
       setNotes("");
+      if (fileRef.current) fileRef.current.value = "";
     } catch (e) {
       setMsg(e.message);
     } finally {
@@ -111,88 +127,137 @@ export default function SkillsRoadmap() {
     }
   }
 
+  const scoreNum = Number.isFinite(score) ? score : 0;
+
   return (
-    <div className="skills-page">
-      <div className="skills-hero reveal">
+    <div className="page skills-sync">
+      <header className="skills-hero reveal">
         <div>
-          <h1>Verify Skills</h1>
-          <p className="muted">
-            Upload a project ZIP to verify a skill. Verified skills power your readiness score
-            {typeof score === "number" ? ` (${score}/1000)` : ""}.
+          <div className="skills-kicker">SKILLS ROADMAP</div>
+          <h1 className="skills-title">Verify Skills</h1>
+          <p className="skills-sub muted">
+            Upload a project ZIP to verify a skill. Verified skills power your
+            readiness score ({scoreNum}/1000).
           </p>
         </div>
-        <div className="kpi glass">
-          <div className="kpi-title">Readiness</div>
-          <div className="kpi-value">{typeof score === "number" ? score : "—"}</div>
-          <div className="kpi-sub">/ 1000</div>
+
+        <div className="skills-hero-right">
+          <div className="glass skills-score">
+            <div className="skills-score-label">Readiness</div>
+            <div className="skills-score-value">{scoreNum}</div>
+            <div className="skills-score-sub">/ 1000</div>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <section className="glass reveal">
-        <h2>VERIFY A SKILL</h2>
+      <section className="glass skills-card reveal">
+        <div className="skills-card-head">
+          <div>
+            <div className="skills-card-kicker">VERIFY A SKILL</div>
+            <div className="skills-card-sub">
+              Add a real project ZIP for stronger verification results.
+            </div>
+          </div>
+          <span className="chip chip-soft">{verifiedSkills.length} verified</span>
+        </div>
 
-        <div className="form-row">
+        {msg ? <div className="skills-msg">{msg}</div> : null}
+
+        <div className="skills-form">
           <input
             className="input"
-            placeholder="Skill name (e.g., React)"
             value={skillName}
             onChange={(e) => setSkillName(e.target.value)}
+            placeholder="Skill name (e.g., React)"
           />
 
-          <label className="file-pill">
+          <label className="file-btn" title="Choose a .zip file">
+            Choose ZIP
             <input
-              className="file-input"
+              ref={fileRef}
               type="file"
               accept=".zip"
               onChange={(e) => setProjectZip(e.target.files?.[0] || null)}
+              hidden
             />
-            <span>{projectZip?.name ? projectZip.name : "Upload ZIP"}</span>
           </label>
 
-          <button className="btn-primary" onClick={verifySkill} disabled={loading}>
+          <div className="file-name" title={projectZip?.name || ""}>
+            {projectZip?.name || "No file chosen"}
+          </div>
+
+          <button
+            className="btn-primary"
+            onClick={verifySkill}
+            disabled={loading}
+          >
             {loading ? "Verifying..." : "Verify"}
           </button>
         </div>
 
         <textarea
           className="textarea"
-          placeholder="Notes for evaluator (optional) — what should be checked?"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          placeholder="Notes for evaluator (optional) — what should be checked?"
+          rows={3}
         />
 
-        {msg ? <div className="toast">{msg}</div> : null}
-        <div className="hint">Tip: Use real projects—AI scoring becomes stronger with meaningful codebases.</div>
+        <div className="hint muted">
+          Tip: Use real projects—AI scoring becomes stronger with meaningful
+          codebases.
+        </div>
       </section>
 
-      <section className="glass reveal">
-        <h2>VERIFIED SKILLS</h2>
+      <section className="glass skills-card reveal">
+        <div className="skills-card-head">
+          <div>
+            <div className="skills-card-kicker">VERIFIED SKILLS</div>
+            <div className="skills-card-sub">
+              Your verified skills, scores, and summaries.
+            </div>
+          </div>
+        </div>
 
         {verifiedSkills.length === 0 ? (
-          <p className="empty-text">No verified skills yet. Verify a project above to unlock score + roadmap.</p>
+          <p className="empty-text muted">
+            No verified skills yet. Verify a project above to unlock score +
+            roadmap.
+          </p>
         ) : (
-          <div className="stack">
+          <div className="verified-list">
             {verifiedSkills.map((s) => (
-              <SkillRow
-                key={s.name}
-                skill={s}
-                onChange={() => {}}
-                onRemove={() => removeVerifiedSkill(s.name)}
-              />
+              <div key={s.name} className="verified-row">
+                <SkillRow skill={s} onRemove={() => removeVerifiedSkill(s.name)} />
+              </div>
             ))}
           </div>
         )}
       </section>
 
-      <section className="glass reveal">
-        <h2>ROADMAP</h2>
+      <section className="glass skills-card reveal">
+        <div className="skills-card-head">
+          <div>
+            <div className="skills-card-kicker">ROADMAP</div>
+            <div className="skills-card-sub">
+              Next actions generated from your verified skills.
+            </div>
+          </div>
+        </div>
 
-        {roadmap.length === 0 ? (
-          <p className="empty-text">Verify at least one skill to generate roadmap steps.</p>
+        {verifiedSkills.length === 0 ? (
+          <p className="empty-text muted">
+            Verify at least one skill to generate roadmap steps.
+          </p>
+        ) : roadmap.length === 0 ? (
+          <p className="empty-text muted">
+            No roadmap steps yet. Verify another skill or upload a richer
+            project.
+          </p>
         ) : (
-          <div className="stack">
+          <div className="roadmap-list">
             {roadmap.map((step, i) => (
-              <RoadmapStep key={`${step.title}-${i}`} step={step} />
+              <RoadmapStep key={`${step.title || "step"}-${i}`} step={step} />
             ))}
           </div>
         )}

@@ -1,49 +1,111 @@
-.skills-page{
-  padding: 40px 70px 180px;
-  max-width: 1180px;
-  margin: 0 auto;
+/* Roadmap page now uses global .page spacing + global .glass cards */
+.skills-sync{
+  width: 100%;
 }
 
-.skills-page h1{
-  margin: 18px 0 10px;
-  font-size: 30px;
-}
-
-.skills-page section{
-  background: rgba(18, 36, 68, 0.55);
-  backdrop-filter: blur(24px);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 28px;
-  margin-bottom: 26px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
-  position: relative;
-  overflow: hidden;
-}
-
-.skills-page h2{
-  font-size: 12px;
-  margin: 0 0 18px;
-  opacity: 0.7;
-  letter-spacing: 1px;
-}
-
-.empty-text{
-  opacity: 0.65;
-  font-size: 14px;
-  margin: 0;
-}
-
-/* Form */
-.form-row{
+/* --- Hero (matches the clean dashboard feel) --- */
+.skills-hero{
   display: flex;
-  gap: 10px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 6px 0 18px;
+}
+
+.skills-kicker{
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  opacity: 0.72;
+}
+
+.skills-title{
+  margin: 10px 0 8px;
+  font-size: 32px;
+  font-weight: 950;
+  letter-spacing: 0.2px;
+}
+
+.skills-sub{
+  margin: 0;
+  max-width: 78ch;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+/* Score mini card */
+.skills-score{
+  padding: 14px 16px;
+  min-width: 170px;
+  text-align: center;
+}
+
+.skills-score-label{
+  font-size: 11px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.skills-score-value{
+  margin-top: 8px;
+  font-size: 34px;
+  font-weight: 950;
+}
+
+.skills-score-sub{
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+/* --- Cards --- */
+.skills-card{
+  padding: 26px;
+  margin-bottom: 18px;
+}
+
+.skills-card-head{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.skills-card-kicker{
+  font-size: 12px;
+  letter-spacing: 1.1px;
+  opacity: 0.75;
+}
+
+.skills-card-sub{
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.72;
+  line-height: 1.45;
+}
+
+/* message */
+.skills-msg{
+  margin: 12px 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(59,130,246,0.14);
+  border: 1px solid rgba(59,130,246,0.20);
+  color: rgba(255,255,255,0.90);
+  font-size: 13px;
+}
+
+/* --- Form --- */
+.skills-form{
+  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
-  align-items: stretch;
+  align-items: center;
 }
 
 .input{
   flex: 1 1 320px;
+  min-width: 220px;
   height: 44px;
   border-radius: 14px;
   padding: 0 12px;
@@ -52,6 +114,8 @@
   color: rgba(255,255,255,0.92);
   outline: none;
 }
+
+.input::placeholder{ color: rgba(255,255,255,0.45); }
 
 .textarea{
   width: 100%;
@@ -65,6 +129,39 @@
   margin-top: 12px;
 }
 
+.textarea::placeholder{ color: rgba(255,255,255,0.45); }
+
+.file-btn{
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.90);
+  cursor: pointer;
+  user-select: none;
+  transition: transform .25s var(--ease), background .25s var(--ease), border-color .25s var(--ease);
+}
+
+.file-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.file-name{
+  flex: 1 1 220px;
+  min-width: 160px;
+  font-size: 13px;
+  opacity: 0.78;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .btn-primary{
   height: 44px;
   border-radius: 14px;
@@ -72,14 +169,14 @@
   background: #3b82f6;
   border: none;
   color: white;
-  font-weight: 650;
+  font-weight: 850;
   cursor: pointer;
-  transition: transform .25s cubic-bezier(.2,.85,.2,1), filter .25s cubic-bezier(.2,.85,.2,1);
+  transition: transform .25s var(--ease), filter .25s var(--ease);
 }
 
 .btn-primary:hover{
   transform: translateY(-2px);
-  filter: brightness(1.08);
+  filter: brightness(1.10);
 }
 
 .btn-primary:disabled{
@@ -95,20 +192,33 @@
   margin-top: 10px;
 }
 
-/* Verified skills */
+.empty-text{
+  opacity: 0.72;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* --- Verified skills list wrapper --- */
+.verified-list{
+  display: grid;
+  gap: 12px;
+}
+
 .verified-row{
   border-bottom: none !important;
   padding: 16px !important;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
-  transition: transform .25s cubic-bezier(.2,.85,.2,1), border-color .25s cubic-bezier(.2,.85,.2,1);
+  transition: transform .25s var(--ease), border-color .25s var(--ease);
 }
+
 .verified-row:hover{
   transform: translateY(-2px);
   border-color: rgba(34,200,255,0.22);
 }
 
+/* Keep compatibility with existing SkillRow layout */
 .skill-row{
   display: grid;
   grid-template-columns: 1fr 2fr auto;
@@ -116,67 +226,27 @@
   gap: 14px;
 }
 
-.skill-name{
-  font-weight: 650;
-  opacity: 0.95;
+/* --- Roadmap list + steps --- */
+.roadmap-list{
+  display: grid;
+  gap: 12px;
 }
 
-.skill-badge{
-  opacity: 0.95;
-  margin-top: 6px;
-}
-
-.skill-badge-score{
-  color: #60a5fa;
-  font-weight: 800;
-}
-
-.skill-summary{
-  margin-top: 6px;
-  opacity: 0.75;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.skill-actions{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.remove-btn{
-  height: 34px;
-  padding: 0 10px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85);
-  cursor: pointer;
-  transition: transform .25s cubic-bezier(.2,.85,.2,1), background .25s cubic-bezier(.2,.85,.2,1);
-}
-.remove-btn:hover{
-  transform: translateY(-1px);
-  background: rgba(255,255,255,0.10);
-}
-
-/* Roadmap */
 .roadmap-step{
   padding: 18px;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
-  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform .25s cubic-bezier(.2,.85,.2,1), border-color .25s cubic-bezier(.2,.85,.2,1);
+  transition: transform .25s var(--ease), border-color .25s var(--ease);
 }
+
 .roadmap-step:hover{
   transform: translateY(-2px);
   border-color: rgba(59,130,246,0.22);
 }
-.roadmap-step:last-child{ margin-bottom: 0; }
 
 .roadmap-left{
   display: flex;
@@ -184,9 +254,9 @@
   gap: 6px;
 }
 
-.roadmap-title{ font-weight: 650; }
-.roadmap-detail{ opacity: 0.7; font-size: 13px; }
-.roadmap-points{ font-size: 12px; color: #60a5fa; }
+.roadmap-title{ font-weight: 750; }
+.roadmap-detail{ opacity: 0.72; font-size: 13px; }
+.roadmap-points{ font-size: 12px; color: #93c5fd; }
 
 .roadmap-status{
   font-size: 12px;
@@ -194,12 +264,23 @@
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.10);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
-/* Responsive */
+/* --- Responsive --- */
+@media (max-width: 980px){
+  .skills-hero{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .skills-score{
+    width: 100%;
+    text-align: left;
+  }
+}
+
 @media (max-width: 900px){
-  .skills-page{ padding: 24px 18px 170px; }
   .skill-row{ grid-template-columns: 1fr; gap: 10px; }
   .roadmap-step{ flex-direction: column; align-items: flex-start; gap: 12px; }
+  .skills-card{ padding: 20px; }
 }
