@@ -20,6 +20,8 @@
   --shadow: 0 30px 80px rgba(0,0,0,0.60);
   --ease: cubic-bezier(.2,.85,.2,1);
 
+  --top-nav-h: 86px;
+
   --bottom-nav-h: 86px;
   --bottom-nav-gap: 18px;
   --bottom-nav-safe: calc(var(--bottom-nav-h) + var(--bottom-nav-gap) + 22px);
@@ -39,7 +41,7 @@ body{
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-body::-webkit-scrollbar{ width: 0; height: 0; }
+body::-webkit-scrollbar{ width: 0; height: 0;display: none; }
 
 #root{ min-height: 100%; }
 
@@ -161,8 +163,7 @@ body::-webkit-scrollbar{ width: 0; height: 0; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  
 }
 
 .logo{ display: flex; gap: 14px; align-items: center; }

@@ -23,6 +23,12 @@ export default function Dashboard() {
   const [skills, setSkills] = useState([]);
   const [roadmap, setRoadmap] = useState([]);
 
+  // ✅ NEW: disable scroll only while Dashboard is mounted (desktop CSS will apply it)
+  useEffect(() => {
+    document.body.classList.add("no-scroll");
+    return () => document.body.classList.remove("no-scroll");
+  }, []);
+
   useEffect(() => {
     const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), null);
     const savedRoadmap = safeJson(localStorage.getItem(LS_ROADMAP), []);
@@ -106,49 +112,30 @@ export default function Dashboard() {
               <>
                 <SkillCard
                   label="TOP STRENGTH"
-                  title={top?.name || "—"}
+                  title={top?.name || "Verify a skill"}
                   score={top ? Number(top.level) : null}
                   type="good"
                 />
                 <SkillCard
                   label="VERIFIED"
-                  title={(second?.name || top?.name) || "—"}
+                  title={second?.name || top?.name || "Upload a project ZIP"}
                   score={
-                    second
-                      ? Number(second.level)
-                      : top
-                      ? Number(top.level)
-                      : null
+                    second ? Number(second.level) : top ? Number(top.level) : null
                   }
                   type="good"
                 />
                 <SkillCard
                   label="CRITICAL GAP"
-                  title={lowest?.name || "—"}
+                  title={lowest?.name || "Start with one skill"}
                   score={lowest ? Number(lowest.level) : null}
                   type="bad"
                 />
               </>
             ) : (
               <>
-                <SkillCard
-                  label="TOP STRENGTH"
-                  title="Verify a skill"
-                  score={60}
-                  type="good"
-                />
-                <SkillCard
-                  label="VERIFIED"
-                  title="Upload a project ZIP"
-                  score={40}
-                  type="good"
-                />
-                <SkillCard
-                  label="CRITICAL GAP"
-                  title="Complete roadmap step"
-                  score={20}
-                  type="bad"
-                />
+                <SkillCard label="TOP STRENGTH" title="Verify a skill" score={60} type="good" />
+                <SkillCard label="VERIFIED" title="Upload a project ZIP" score={40} type="good" />
+                <SkillCard label="CRITICAL GAP" title="Complete roadmap step" score={20} type="bad" />
               </>
             )}
           </div>
@@ -168,29 +155,30 @@ export default function Dashboard() {
               buttonHref="/roadmap"
             />
           </div>
+
+          <section className="matches ring-matches">
+            <div className="matches-head">
+              <div className="matches-title">HIGH POTENTIAL MATCHES</div>
+              <div className="matches-sub">Based on verified skills + gaps.</div>
+            </div>
+
+            <div className="jobs">
+              {jobs.slice(0, 2).map((j, idx) => (
+                <JobCard
+                  key={`${j.title}-${idx}`}
+                  title={j.title}
+                  company={j.company}
+                  mode={j.mode}
+                  badge={j.badge}
+                  tags={j.tags}
+                  match={j.match}
+                />
+              ))}
+            </div>
+          </section>
         </section>
 
-        <section className="matches">
-          <div className="matches-head">
-            <div className="matches-title">HIGH POTENTIAL MATCHES</div>
-            <div className="matches-sub">Based on verified skills + gaps.</div>
-          </div>
-
-          <div className="jobs">
-            {jobs.map((j, idx) => (
-              <JobCard
-                key={`${j.title}-${idx}`}
-                title={j.title}
-                company={j.company}
-                mode={j.mode}
-                badge={j.badge}
-                tags={j.tags}
-                match={j.match}
-              />
-            ))}
-          </div>
-        </section>
-
+        {/* keep this for mobile; desktop CSS below will set it to 0 */}
         <div className="nav-safe-space" aria-hidden="true" />
       </div>
     </div>
