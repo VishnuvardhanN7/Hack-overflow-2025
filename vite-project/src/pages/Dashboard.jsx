@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+
 import ScoreRing from "../components/ScoreRing";
 import SkillCard from "../components/SkillCard";
 import RecommendationCard from "../components/RecommendationCard";
 import JobCard from "../components/JobCard";
+
 import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import { studentData } from "../data/studentData";
 import "../styles/dashboard.css";
@@ -24,10 +26,26 @@ export default function Dashboard() {
   const [roadmap, setRoadmap] = useState([]);
 
   useEffect(() => {
-    const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), []);
+    const savedSkills = safeJson(localStorage.getItem(LS_SKILLS), null);
     const savedRoadmap = safeJson(localStorage.getItem(LS_ROADMAP), []);
 
-    setSkills(Array.isArray(savedSkills) ? savedSkills : []);
+    if (Array.isArray(savedSkills)) {
+      setSkills(savedSkills);
+    } else {
+      const seed = Array.isArray(studentData?.skills)
+        ? studentData.skills.map((s) => ({
+            name: s?.name || "Skill",
+            verified: false,
+            level: 0,
+            summary: "",
+            roadmap: [],
+          }))
+        : [];
+
+      setSkills(seed);
+      localStorage.setItem(LS_SKILLS, JSON.stringify(seed));
+    }
+
     setRoadmap(Array.isArray(savedRoadmap) ? savedRoadmap : []);
   }, []);
 
@@ -35,78 +53,113 @@ export default function Dashboard() {
   const score = useMemo(() => calculateScore(skills), [skills]);
 
   const sorted = useMemo(() => {
-    return [...verifiedSkills].sort((a, b) => (Number(b.level) || 0) - (Number(a.level) || 0));
+    return [...verifiedSkills].sort(
+      (a, b) => (Number(b.level) || 0) - (Number(a.level) || 0)
+    );
   }, [verifiedSkills]);
 
   const top = sorted[0] || null;
   const second = sorted[1] || null;
   const lowest = useMemo(() => {
     if (!verifiedSkills.length) return null;
-    return [...verifiedSkills].sort((a, b) => (Number(a.level) || 0) - (Number(b.level) || 0))[0];
+    return [...verifiedSkills].sort(
+      (a, b) => (Number(a.level) || 0) - (Number(b.level) || 0)
+    )[0];
   }, [verifiedSkills]);
 
   const nextAction = roadmap?.[0];
-
   const showInsights = verifiedSkills.length > 0;
+
   const recTitle = nextAction?.title || "Verify your first project";
   const recSubtitle =
     nextAction?.detail ||
-    "Go to Roadmap, enter a skill name, upload a project ZIP, and get your verified score + learning roadmap.";
-  const recPoints = Number(nextAction?.points ?? 0);
+    "Go to Roadmap, upload a ZIP, and unlock verified scores + roadmap steps.";
+  const recPoints = Number(nextAction?.points ?? 70);
+
+  const jobs = Array.isArray(studentData?.matches)
+    ? studentData.matches
+    : [
+        {
+          title: "APM Intern",
+          company: "Google",
+          mode: "Hybrid",
+          badge: "Missing Skill",
+          tags: ["Product", "Data"],
+          match: 85,
+        },
+        {
+          title: "UX Intern",
+          company: "Tesla",
+          mode: "Remote",
+          badge: "Eligible",
+          tags: ["Figma", "Prototyping"],
+          match: 93,
+        },
+      ];
 
   return (
     <div className="dashboard">
       <div className="dashboard-container">
         <div className="main-grid">
-          <div className="left">
+          <div className="left-col">
             <SkillCard
-              label="TOP VERIFIED SKILL"
-              title={showInsights ? top?.name : "—"}
-              score={showInsights ? Number(top?.level ?? 0) : null}
+              label="TOP STRENGTH"
+              title={top?.name || "Verify a project"}
+              score={showInsights ? top?.level ?? null : null}
               type="good"
             />
             <SkillCard
-              label="SECOND STRONGEST"
-              title={showInsights ? second?.name : "—"}
-              score={showInsights ? Number(second?.level ?? 0) : null}
+              label="VERIFIED"
+              title={second?.name || "Upload ZIP to assess"}
+              score={showInsights ? second?.level ?? null : null}
               type="good"
             />
             <SkillCard
-              label="LOWEST VERIFIED"
-              title={showInsights ? lowest?.name : "—"}
-              score={showInsights ? Number(lowest?.level ?? 0) : null}
+              label="CRITICAL GAP"
+              title={lowest?.name || "Start with one skill"}
+              score={showInsights ? lowest?.level ?? null : null}
               type="bad"
             />
           </div>
 
-          <div className="score-container">
+          <div className="mid-col">
             <ScoreRing score={score} />
           </div>
 
-          <div className="right">
+          <div className="right-col">
             <RecommendationCard
               title={recTitle}
               subtitle={recSubtitle}
               points={recPoints}
-              buttonText="Go to Roadmap"
+              buttonText={showInsights ? "Go to Roadmap" : "Start Mission"}
               buttonHref="/roadmap"
             />
           </div>
         </div>
 
-        <div className="matches-title">HIGH POTENTIAL MATCHES</div>
+        <div className="matches">
+          <div className="matches-head">
+            <div className="matches-title">HIGH POTENTIAL MATCHES</div>
+            <div className="matches-sub">Based on verified skills + gaps.</div>
+          </div>
 
-        <div className="jobs">
-          {(studentData?.jobs || []).map((job) => (
-            <JobCard
-              key={`${job.title}-${job.company}`}
-              title={job.title}
-              company={job.company}
-              match={job.match}
-              tags={job.tags}
-            />
-          ))}
+          <div className="jobs">
+            {jobs.slice(0, 2).map((j) => (
+              <JobCard
+                key={`${j.title}-${j.company}`}
+                title={j.title}
+                company={j.company}
+                mode={j.mode}
+                tags={j.tags || []}
+                badge={j.badge || ""}
+                match={j.match || 0}
+              />
+            ))}
+          </div>
         </div>
+
+        {/* prevents bottom fixed navbar from covering jobs */}
+        <div className="nav-safe-space" />
       </div>
     </div>
   );

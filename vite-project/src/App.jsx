@@ -12,16 +12,14 @@ export default function App() {
     <>
       <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/roadmap" element={<SkillsRoadmap />} />
-
-        {/* Use lowercase path to avoid case-mismatch issues */}
-        <Route path="/profile" element={<Profile />} />
-
-        {/* Optional: redirect any unknown routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main className="app-shell">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/roadmap" element={<SkillsRoadmap />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </>
   );
 }

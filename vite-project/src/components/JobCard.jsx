@@ -1,20 +1,31 @@
-export default function JobCard({ title, company, match = 0, tags = [] }) {
+export default function JobCard({
+  title,
+  company,
+  mode,
+  tags = [],
+  match = 0,
+  badge = "",
+}) {
+  const pct = Math.max(0, Math.min(100, Number(match) || 0));
+
   return (
-    <div className="job glass">
-      <div>
+    <div className="job glass reveal">
+      <div className="job-left">
         <h4>{title}</h4>
-        <p className="job-company">{company}</p>
+        <div className="job-company">
+          {company}{mode ? ` • ${mode}` : ""}
+        </div>
+
         <div className="tags">
-          {tags.map((tag) => (
-            <span key={tag} className={`tag ${String(tag).toLowerCase().includes("missing") ? "warn" : ""}`}>
-              {tag}
-            </span>
+          {badge ? <span className={`tag ${badge === "Missing Skill" ? "warn" : ""}`}>{badge}</span> : null}
+          {tags.map((t) => (
+            <span className="tag" key={t}>{t}</span>
           ))}
         </div>
       </div>
 
-      <div className="match">
-        <div className="match-ring">{Math.round(match)}%</div>
+      <div className="match-ring" aria-label={`Match ${pct}%`}>
+        {pct}%
       </div>
     </div>
   );
