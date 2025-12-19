@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import SkillsRoadmap from "./pages/SkillsRoadmap";
 import Profile from "./pages/Profile";
+import RecruiterLogin from "./pages/RecruiterLogin";
+
 
 import "./styles/global.css";
 
@@ -13,6 +15,7 @@ export default function App() {
       <Navbar />
 
       <Routes>
+        <Route path="/recruiter-login" element={<RecruiterLogin />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/roadmap" element={<SkillsRoadmap />} />
 
