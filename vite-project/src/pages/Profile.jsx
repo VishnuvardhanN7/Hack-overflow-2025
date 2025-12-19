@@ -1,174 +1,84 @@
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { UserContext } from "../context/usercontext";
 
-const Profile = () => {
+export default function Profile() {
   const { user, setUser } = useContext(UserContext);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
+  const initials = useMemo(() => {
+    const n = String(user?.name || "Student").trim();
+    const parts = n.split(/\s+/).slice(0, 2);
+    return parts.map((p) => p[0]?.toUpperCase()).join("") || "S";
+  }, [user?.name]);
+
+  const onChange = (e) => setUser({ ...user, [e.target.name]: e.target.value });
 
   return (
-    <div style={{ maxWidth: "900px", margin: "auto", padding: "40px" }}>
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "30px",
-          borderBottom: "1px solid #ddd",
-          paddingBottom: "20px",
-        }}
-      >
-        <div
-          style={{
-            width: "110px",
-            height: "110px",
-            borderRadius: "50%",
-            background: "#e0e0e0",
-          }}
-        />
+    <div className="page">
+      <div className="profile-page">
+        <div className="profile-hero glass reveal">
+          <div className="profile-avatar">{initials}</div>
 
-        <div style={{ flex: 1 }}>
-          {isEditing ? (
-            <input
-              name="name"
-              value={user.name}
-              onChange={handleChange}
-              style={{ fontSize: "22px", fontWeight: "bold", width: "100%" }}
-            />
-          ) : (
-            <h2>{user.name}</h2>
-          )}
+          <div className="profile-hero-main">
+            <div className="profile-name-lg">{user?.name || "Student"}</div>
+            <div className="profile-meta">
+              <span className="chip">{user?.role || "—"}</span>
+              <span className="chip chip-soft">{user?.college || "College"}</span>
+            </div>
+            <p className="profile-bio">{user?.bio || "Add a short bio to personalize your Skill Passport."}</p>
+          </div>
 
-          {isEditing ? (
-            <input
-              name="role"
-              value={user.role}
-              onChange={handleChange}
-              style={{ width: "100%", marginTop: "5px" }}
-            />
-          ) : (
-            <p style={{ color: "#555" }}>{user.role}</p>
-          )}
-
-          <p style={{ color: "#777" }}>{user.college}</p>
+          <button className="btn" onClick={() => setIsEditing((v) => !v)}>
+            {isEditing ? "Done" : "Edit"}
+          </button>
         </div>
 
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          style={{
-            padding: "10px 18px",
-            cursor: "pointer",
-            background: "#2c3e50",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-          }}
-        >
-          {isEditing ? "Save" : "Edit Profile"}
-        </button>
+        <div className="profile-grid">
+          <section className="glass reveal">
+            <div className="section-title">PROFILE</div>
+
+            <div className="form-grid">
+              <label className="field">
+                <span>Name</span>
+                <input className="input" name="name" value={user?.name || ""} onChange={onChange} disabled={!isEditing} />
+              </label>
+
+              <label className="field">
+                <span>Role</span>
+                <input className="input" name="role" value={user?.role || ""} onChange={onChange} disabled={!isEditing} />
+              </label>
+
+              <label className="field">
+                <span>College</span>
+                <input className="input" name="college" value={user?.college || ""} onChange={onChange} disabled={!isEditing} />
+              </label>
+
+              <label className="field">
+                <span>Email</span>
+                <input className="input" name="email" value={user?.email || ""} onChange={onChange} disabled={!isEditing} />
+              </label>
+            </div>
+          </section>
+
+          <section className="glass reveal">
+            <div className="section-title">ABOUT</div>
+
+            <label className="field">
+              <span>Skills</span>
+              <input className="input" name="skills" value={user?.skills || ""} onChange={onChange} disabled={!isEditing} />
+            </label>
+
+            <label className="field" style={{ marginTop: 12 }}>
+              <span>Bio</span>
+              <textarea className="textarea" name="bio" value={user?.bio || ""} onChange={onChange} disabled={!isEditing} />
+            </label>
+
+            <div className="profile-note muted">
+              Tip: keep it short—your dashboard score should prove capability; the profile just adds context.
+            </div>
+          </section>
+        </div>
       </div>
-
-      {/* About */}
-      <section style={{ marginTop: "30px" }}>
-        <h3>About Me</h3>
-        {isEditing ? (
-          <textarea
-            name="bio"
-            value={user.bio}
-            onChange={handleChange}
-            rows="4"
-            style={{ width: "100%" }}
-          />
-        ) : (
-          <p>{user.bio}</p>
-        )}
-      </section>
-
-      {/* Skills */}
-      <section style={{ marginTop: "30px" }}>
-        <h3>Skills</h3>
-        {isEditing ? (
-          <input
-            name="skills"
-            value={user.skills}
-            onChange={handleChange}
-            style={{ width: "100%" }}
-          />
-        ) : (
-          <p>{user.skills}</p>
-        )}
-      </section>
-
-      {/* Contact & Links */}
-      <section
-        style={{
-          marginTop: "30px",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px",
-        }}
-      >
-        <div>
-          <h3>Contact</h3>
-          {isEditing ? (
-            <input
-              name="email"
-              value={user.email}
-              onChange={handleChange}
-              style={{ width: "100%" }}
-            />
-          ) : (
-            <p>Email: {user.email}</p>
-          )}
-        </div>
-
-        <div>
-          <h3>GitHub</h3>
-          {isEditing ? (
-            <input
-              name="github"
-              value={user.github}
-              onChange={handleChange}
-              style={{ width: "100%" }}
-            />
-          ) : (
-            <a href={user.github} target="_blank" rel="noreferrer">
-              {user.github}
-            </a>
-          )}
-        </div>
-      </section>
-
-      {/* Academic & Interests */}
-      <section
-        style={{
-          marginTop: "30px",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px",
-        }}
-      >
-        <div>
-          <h3>Education</h3>
-          <p>{user.college}</p>
-          <p>B.Tech (Expected 2028)</p>
-        </div>
-
-        <div>
-          <h3>Interests</h3>
-          <ul>
-            <li>Web Development</li>
-            <li>Hackathons</li>
-            <li>Software Engineering</li>
-            <li>Learning New Technologies</li>
-          </ul>
-        </div>
-      </section>
     </div>
   );
-};
-
-export default Profile;
+}

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import RoadmapStep from "../components/RoadmapStep";
+import SkillRow from "../components/SkillRow";
+
 import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import "../styles/skills.css";
 
@@ -18,15 +20,10 @@ function safeJson(raw, fallback) {
 
 function buildGlobalRoadmapFromSkills(skills) {
   const verified = getVerifiedSkills(skills);
-
   const all = [];
   for (const s of verified) {
-    for (const step of s.roadmap || []) {
-      all.push({ ...step, _from: s.name });
-    }
+    for (const step of s.roadmap || []) all.push({ ...step, _from: s.name });
   }
-
-  // de-dupe by title (keep first occurrence)
   const out = [];
   const seen = new Set();
   for (const step of all) {
@@ -72,7 +69,6 @@ export default function SkillsRoadmap() {
 
   async function verifySkill() {
     setMsg("");
-
     const cleaned = String(skillName || "").trim();
     if (!cleaned) return setMsg("Enter a skill name (e.g., JavaScript).");
     if (!projectZip) return setMsg("Upload a project .zip file.");
@@ -84,11 +80,7 @@ export default function SkillsRoadmap() {
       fd.append("notes", notes);
       fd.append("projectZip", projectZip);
 
-      const res = await fetch(`${API_BASE}/api/assess-skill`, {
-        method: "POST",
-        body: fd
-      });
-
+      const res = await fetch(`${API_BASE}/api/assess-skill`, { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Verification failed");
 
@@ -97,13 +89,12 @@ export default function SkillsRoadmap() {
         verified: true,
         level: Number(data.level) || 0,
         summary: data.summary || "",
-        roadmap: Array.isArray(data.roadmap) ? data.roadmap : []
+        roadmap: Array.isArray(data.roadmap) ? data.roadmap : [],
       };
 
-      // Upsert (replace if same name exists)
       const next = [
         ...skills.filter((s) => String(s.name).toLowerCase() !== cleaned.toLowerCase()),
-        newSkill
+        newSkill,
       ].sort((a, b) => a.name.localeCompare(b.name));
 
       setSkills(next);
@@ -122,94 +113,88 @@ export default function SkillsRoadmap() {
 
   return (
     <div className="skills-page">
-      <h1>Skills Verification & Roadmap</h1>
+      <div className="skills-hero reveal">
+        <div>
+          <h1>Verify Skills</h1>
+          <p className="muted">
+            Upload a project ZIP to verify a skill. Verified skills power your readiness score
+            {typeof score === "number" ? ` (${score}/1000)` : ""}.
+          </p>
+        </div>
+        <div className="kpi glass">
+          <div className="kpi-title">Readiness</div>
+          <div className="kpi-value">{typeof score === "number" ? score : "—"}</div>
+          <div className="kpi-sub">/ 1000</div>
+        </div>
+      </div>
 
-      <section>
-        <h2>VERIFY A SKILL (PROJECT)</h2>
+      <section className="glass reveal">
+        <h2>VERIFY A SKILL</h2>
 
         <div className="form-row">
           <input
             className="input"
+            placeholder="Skill name (e.g., React)"
             value={skillName}
             onChange={(e) => setSkillName(e.target.value)}
-            placeholder="Skill name (e.g., JavaScript, SQL, React)"
           />
 
-          <input
-            className="input"
-            type="file"
-            accept=".zip"
-            onChange={(e) => setProjectZip(e.target.files?.[0] || null)}
-          />
+          <label className="file-pill">
+            <input
+              className="file-input"
+              type="file"
+              accept=".zip"
+              onChange={(e) => setProjectZip(e.target.files?.[0] || null)}
+            />
+            <span>{projectZip?.name ? projectZip.name : "Upload ZIP"}</span>
+          </label>
 
-          <button className="btn-primary" type="button" onClick={verifySkill} disabled={loading}>
+          <button className="btn-primary" onClick={verifySkill} disabled={loading}>
             {loading ? "Verifying..." : "Verify"}
           </button>
         </div>
 
         <textarea
           className="textarea"
-          rows={3}
-          placeholder="Notes (optional): what did you build, your role, tech stack…"
+          placeholder="Notes for evaluator (optional) — what should be checked?"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        {msg ? <div className="hint" style={{ marginTop: 10 }}>{msg}</div> : null}
-
-        <div style={{ marginTop: 14 }} className="hint">
-          {score == null ? (
-            <>Score: — (verify at least one project)</>
-          ) : (
-            <>Score: <b>{score}</b> / 1000</>
-          )}
-        </div>
+        {msg ? <div className="toast">{msg}</div> : null}
+        <div className="hint">Tip: Use real projects—AI scoring becomes stronger with meaningful codebases.</div>
       </section>
 
-      <section>
+      <section className="glass reveal">
         <h2>VERIFIED SKILLS</h2>
 
         {verifiedSkills.length === 0 ? (
-          <p className="empty-text">
-            No verified skills yet. Verify a project above to add your first skill and unlock your score + roadmap.
-          </p>
+          <p className="empty-text">No verified skills yet. Verify a project above to unlock score + roadmap.</p>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="stack">
             {verifiedSkills.map((s) => (
-              <div key={s.name} className="skill-row verified-row">
-                <div className="skill-name">{s.name}</div>
-
-                <div className="skill-badge">
-                  Verified: <span className="skill-badge-score">{Number(s.level)}/100</span>
-                  {s.summary ? <div className="skill-summary">{s.summary}</div> : null}
-                </div>
-
-                <div className="skill-actions">
-                  <button className="remove-btn" type="button" onClick={() => removeVerifiedSkill(s.name)} title="Remove">
-                    ✕
-                  </button>
-                </div>
-              </div>
+              <SkillRow
+                key={s.name}
+                skill={s}
+                onChange={() => {}}
+                onRemove={() => removeVerifiedSkill(s.name)}
+              />
             ))}
           </div>
         )}
       </section>
 
-      <section>
-        <h2>YOUR ROADMAP (NEXT SKILLS)</h2>
+      <section className="glass reveal">
+        <h2>ROADMAP</h2>
 
         {roadmap.length === 0 ? (
           <p className="empty-text">Verify at least one skill to generate roadmap steps.</p>
         ) : (
-          roadmap.map((s, i) => (
-            <RoadmapStep
-              key={`${s.title}-${i}`}
-              title={s.title}
-              detail={s.detail}
-              points={s.points}
-              completed={false}
-            />
-          ))
+          <div className="stack">
+            {roadmap.map((step, i) => (
+              <RoadmapStep key={`${step.title}-${i}`} step={step} />
+            ))}
+          </div>
         )}
       </section>
     </div>
