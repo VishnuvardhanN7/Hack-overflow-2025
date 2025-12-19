@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-
 import ScoreRing from "../components/ScoreRing";
 import SkillCard from "../components/SkillCard";
 import RecommendationCard from "../components/RecommendationCard";
 import JobCard from "../components/JobCard";
-
 import { calculateScore, getVerifiedSkills } from "../utils/scoreUtils";
 import { studentData } from "../data/studentData";
 import "../styles/dashboard.css";
@@ -36,12 +34,11 @@ export default function Dashboard() {
         ? studentData.skills.map((s) => ({
             name: s?.name || "Skill",
             verified: false,
-            level: 0,
+            level: Number(s?.level ?? 0),
             summary: "",
             roadmap: [],
           }))
         : [];
-
       setSkills(seed);
       localStorage.setItem(LS_SKILLS, JSON.stringify(seed));
     }
@@ -60,6 +57,7 @@ export default function Dashboard() {
 
   const top = sorted[0] || null;
   const second = sorted[1] || null;
+
   const lowest = useMemo(() => {
     if (!verifiedSkills.length) return null;
     return [...verifiedSkills].sort(
@@ -97,33 +95,68 @@ export default function Dashboard() {
         },
       ];
 
+  const totalScore = Number.isFinite(score) ? score : 0;
+
   return (
     <div className="dashboard">
       <div className="dashboard-container">
-        <div className="main-grid">
+        <section className="main-grid">
           <div className="left-col">
-            <SkillCard
-              label="TOP STRENGTH"
-              title={top?.name || "Verify a project"}
-              score={showInsights ? top?.level ?? null : null}
-              type="good"
-            />
-            <SkillCard
-              label="VERIFIED"
-              title={second?.name || "Upload ZIP to assess"}
-              score={showInsights ? second?.level ?? null : null}
-              type="good"
-            />
-            <SkillCard
-              label="CRITICAL GAP"
-              title={lowest?.name || "Start with one skill"}
-              score={showInsights ? lowest?.level ?? null : null}
-              type="bad"
-            />
+            {showInsights ? (
+              <>
+                <SkillCard
+                  label="TOP STRENGTH"
+                  title={top?.name || "—"}
+                  score={top ? Number(top.level) : null}
+                  type="good"
+                />
+                <SkillCard
+                  label="VERIFIED"
+                  title={(second?.name || top?.name) || "—"}
+                  score={
+                    second
+                      ? Number(second.level)
+                      : top
+                      ? Number(top.level)
+                      : null
+                  }
+                  type="good"
+                />
+                <SkillCard
+                  label="CRITICAL GAP"
+                  title={lowest?.name || "—"}
+                  score={lowest ? Number(lowest.level) : null}
+                  type="bad"
+                />
+              </>
+            ) : (
+              <>
+                <SkillCard
+                  label="TOP STRENGTH"
+                  title="Verify a skill"
+                  score={60}
+                  type="good"
+                />
+                <SkillCard
+                  label="VERIFIED"
+                  title="Upload a project ZIP"
+                  score={40}
+                  type="good"
+                />
+                <SkillCard
+                  label="CRITICAL GAP"
+                  title="Complete roadmap step"
+                  score={20}
+                  type="bad"
+                />
+              </>
+            )}
           </div>
 
           <div className="mid-col">
-            <ScoreRing score={score} />
+            <div className="score-container">
+              <ScoreRing score={totalScore} />
+            </div>
           </div>
 
           <div className="right-col">
@@ -131,35 +164,34 @@ export default function Dashboard() {
               title={recTitle}
               subtitle={recSubtitle}
               points={recPoints}
-              buttonText={showInsights ? "Go to Roadmap" : "Start Mission"}
+              buttonText="Go to Roadmap"
               buttonHref="/roadmap"
             />
           </div>
-        </div>
+        </section>
 
-        <div className="matches">
+        <section className="matches">
           <div className="matches-head">
             <div className="matches-title">HIGH POTENTIAL MATCHES</div>
             <div className="matches-sub">Based on verified skills + gaps.</div>
           </div>
 
           <div className="jobs">
-            {jobs.slice(0, 2).map((j) => (
+            {jobs.map((j, idx) => (
               <JobCard
-                key={`${j.title}-${j.company}`}
+                key={`${j.title}-${idx}`}
                 title={j.title}
                 company={j.company}
                 mode={j.mode}
-                tags={j.tags || []}
-                badge={j.badge || ""}
-                match={j.match || 0}
+                badge={j.badge}
+                tags={j.tags}
+                match={j.match}
               />
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* prevents bottom fixed navbar from covering jobs */}
-        <div className="nav-safe-space" />
+        <div className="nav-safe-space" aria-hidden="true" />
       </div>
     </div>
   );

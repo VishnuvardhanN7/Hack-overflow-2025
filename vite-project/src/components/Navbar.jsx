@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useMemo, useRef } from "react";
 import { UserContext } from "../context/usercontext";
 
 const Icon = ({ name }) => {
   const common = {
-    width: 18,
-    height: 18,
+    width: 22,
+    height: 22,
     viewBox: "0 0 24 24",
     fill: "none",
     xmlns: "http://www.w3.org/2000/svg",
@@ -16,10 +16,9 @@ const Icon = ({ name }) => {
       return (
         <svg {...common}>
           <path
-            d="M12 3l2.4 5.6 6.1.5-4.6 3.9 1.4 5.9-5.3-3.1-5.3 3.1 1.4-5.9-4.6-3.9 6.1-.5L12 3z"
+            d="M12 3l2.2 6.7H21l-5.4 3.9 2.1 6.5L12 16.7 6.3 20.1l2.1-6.5L3 9.7h6.8L12 3z"
             stroke="currentColor"
             strokeWidth="1.7"
-            strokeLinejoin="round"
           />
         </svg>
       );
@@ -27,41 +26,36 @@ const Icon = ({ name }) => {
       return (
         <svg {...common}>
           <path
-            d="M6 6h12M6 12h8M6 18h12"
+            d="M5 5h6v6H5V5zM13 13h6v6h-6v-6z"
             stroke="currentColor"
             strokeWidth="1.7"
-            strokeLinecap="round"
           />
           <path
-            d="M18 10l2 2-2 2"
+            d="M11 8h2a4 4 0 014 4v1"
             stroke="currentColor"
             strokeWidth="1.7"
             strokeLinecap="round"
-            strokeLinejoin="round"
           />
         </svg>
       );
     case "projects":
       return (
         <svg {...common}>
+          <path d="M4 7h16v12H4V7z" stroke="currentColor" strokeWidth="1.7" />
           <path
-            d="M4 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z"
+            d="M9 7l1.5-2h3L15 7"
             stroke="currentColor"
             strokeWidth="1.7"
-            strokeLinejoin="round"
+            strokeLinecap="round"
           />
         </svg>
       );
     case "interns":
       return (
         <svg {...common}>
+          <path d="M4 9h16v10H4V9z" stroke="currentColor" strokeWidth="1.7" />
           <path
-            d="M16 11a4 4 0 10-8 0 4 4 0 008 0z"
-            stroke="currentColor"
-            strokeWidth="1.7"
-          />
-          <path
-            d="M4 21a8 8 0 0116 0"
+            d="M8 9V7a4 4 0 018 0v2"
             stroke="currentColor"
             strokeWidth="1.7"
             strokeLinecap="round"
@@ -77,7 +71,7 @@ const Icon = ({ name }) => {
             strokeWidth="1.7"
           />
           <path
-            d="M4 21a8 8 0 0116 0"
+            d="M4 20c1.8-3.5 5-5 8-5s6.2 1.5 8 5"
             stroke="currentColor"
             strokeWidth="1.7"
             strokeLinecap="round"
@@ -92,8 +86,63 @@ const Icon = ({ name }) => {
 export default function Navbar() {
   const { user } = useContext(UserContext);
 
-  const navClass = ({ isActive }) =>
-    `nav-item ${isActive ? "active" : ""}`;
+  const name = user?.name || "Alex Chen";
+  const title = user?.title || "Software Engineering";
+
+  const items = useMemo(
+    () => [
+      { to: "/", end: true, label: "Score", icon: "score" },
+      { to: "/roadmap", label: "Roadmap", icon: "roadmap" },
+      { to: "/projects", label: "Projects", icon: "projects" },
+      { to: "/interns", label: "Interns", icon: "interns" },
+      { to: "/profile", label: "Profile", icon: "profile" },
+    ],
+    []
+  );
+
+  const dockRef = useRef(null);
+  const itemRefs = useRef([]);
+  const rafRef = useRef(null);
+
+  const resetDock = () => {
+    itemRefs.current.forEach((el) => {
+      if (!el) return;
+      el.style.setProperty("--dock-scale", "1");
+      el.style.setProperty("--dock-lift", "0px");
+    });
+  };
+
+  const onDockMove = (e) => {
+    if (!dockRef.current) return;
+
+    const rect = dockRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    rafRef.current = requestAnimationFrame(() => {
+      // TUNED: less aggressive, more “professional”
+      const maxDist = 110;  // smaller = tighter influence
+      const maxScale = 1.19; // smaller = less zoom
+
+      itemRefs.current.forEach((el) => {
+        if (!el) return;
+
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2 - rect.left;
+        const dist = Math.abs(x - cx);
+
+        const t = Math.max(0, 1 - dist / maxDist);
+        const scale = 1 + (maxScale - 1) * t;
+        const lift = 4.5 * t; // smaller lift
+
+        el.style.setProperty("--dock-scale", scale.toFixed(3));
+        el.style.setProperty("--dock-lift", `${lift.toFixed(2)}px`);
+      });
+    });
+  };
+
+  const navClass = ({ isActive }) => `dock-item ${isActive ? "active" : ""}`;
 
   return (
     <>
@@ -108,41 +157,38 @@ export default function Navbar() {
 
         <div className="top-right">
           <div className="divider" />
-          <NavLink to="/profile" className="profile" aria-label="Open profile">
+          <div className="profile">
             <div className="profile-text">
-              <div className="profile-name">{user?.name || "Student"}</div>
-              <div className="profile-title">{user?.role || "—"}</div>
+              <div className="profile-name">{name}</div>
+              <div className="profile-title">{title}</div>
             </div>
             <div className="avatar" />
-          </NavLink>
+          </div>
         </div>
       </header>
 
-      <nav className="bottom-nav" aria-label="Primary">
-        <NavLink to="/" className={navClass}>
-          <span className="nav-ico"><Icon name="score" /></span>
-          <span className="nav-label">Score</span>
-        </NavLink>
-
-        <NavLink to="/roadmap" className={navClass}>
-          <span className="nav-ico"><Icon name="roadmap" /></span>
-          <span className="nav-label">Roadmap</span>
-        </NavLink>
-
-        <button className="nav-item" disabled>
-          <span className="nav-ico"><Icon name="projects" /></span>
-          <span className="nav-label">Projects</span>
-        </button>
-
-        <button className="nav-item" disabled>
-          <span className="nav-ico"><Icon name="interns" /></span>
-          <span className="nav-label">Interns</span>
-        </button>
-
-        <NavLink to="/profile" className={navClass}>
-          <span className="nav-ico"><Icon name="profile" /></span>
-          <span className="nav-label">Profile</span>
-        </NavLink>
+      <nav
+        ref={dockRef}
+        className="bottom-nav dock"
+        aria-label="Bottom navigation"
+        onMouseMove={onDockMove}
+        onMouseLeave={resetDock}
+      >
+        {items.map((it, idx) => (
+          <NavLink
+            key={it.label}
+            to={it.to}
+            end={it.end}
+            className={navClass}
+            aria-label={it.label}
+            data-tip={it.label}
+            ref={(el) => (itemRefs.current[idx] = el)}
+          >
+            <span className="dock-icon">
+              <Icon name={it.icon} />
+            </span>
+          </NavLink>
+        ))}
       </nav>
     </>
   );

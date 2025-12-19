@@ -10,23 +10,19 @@ export default function JobCard({
 
   return (
     <div className="job glass reveal">
-      <div className="job-left">
+      <div>
         <h4>{title}</h4>
-        <div className="job-company">
-          {company}{mode ? ` • ${mode}` : ""}
-        </div>
+        <div className="job-company">{company} • {mode}</div>
 
         <div className="tags">
-          {badge ? <span className={`tag ${badge === "Missing Skill" ? "warn" : ""}`}>{badge}</span> : null}
+          {badge ? <span className={`tag ${badge.toLowerCase().includes("missing") ? "warn" : ""}`}>{badge}</span> : null}
           {tags.map((t) => (
             <span className="tag" key={t}>{t}</span>
           ))}
         </div>
       </div>
 
-      <div className="match-ring" aria-label={`Match ${pct}%`}>
-        {pct}%
-      </div>
+      <div className="match-ring">{pct}%</div>
     </div>
   );
 }

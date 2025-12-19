@@ -9,18 +9,16 @@ export default function RecommendationCard({
 }) {
   return (
     <div className="recommend glass reveal">
-      <div className="rec-shimmer" aria-hidden="true" />
-
       <div className="rec-header">
-        <span className="rec-icon" aria-hidden="true">⚡</span>
+        <span className="rec-icon">⚡</span>
         <span>RECOMMENDED ACTION</span>
-        {!!points && <span className="pill">+{points} Pts</span>}
+        <span className="pill">+{Number(points) || 0} Pts</span>
       </div>
 
       <h3>{title}</h3>
       <p>{subtitle}</p>
 
-      <Link to={buttonHref} className="primary-btn">
+      <Link className="primary-btn" to={buttonHref}>
         {buttonText} <span className="arrow">→</span>
       </Link>
     </div>
