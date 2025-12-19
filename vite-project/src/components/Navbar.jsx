@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useContext, useMemo, useRef } from "react";
 import { UserContext } from "../context/usercontext";
 
@@ -16,74 +16,132 @@ const Icon = ({ name }) => {
       return (
         <svg {...common}>
           <path
-            d="M12 3l2.2 6.7H21l-5.4 3.9 2.1 6.5L12 16.7 6.3 20.1l2.1-6.5L3 9.7h6.8L12 3z"
+            d="M12 20.5c4.694 0 8.5-3.806 8.5-8.5S16.694 3.5 12 3.5 3.5 7.306 3.5 12s3.806 8.5 8.5 8.5Z"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.8"
+            opacity="0.9"
+          />
+          <path
+            d="M12 12V7.6"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 12l3.2 1.9"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
           />
         </svg>
       );
+
     case "roadmap":
       return (
         <svg {...common}>
           <path
-            d="M5 5h6v6H5V5zM13 13h6v6h-6v-6z"
+            d="M6 4.5v15"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            opacity="0.9"
           />
           <path
-            d="M11 8h2a4 4 0 014 4v1"
+            d="M6 6.5h8.5l-1.4 2.1 1.4 2.1H6"
             stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 13.5h10.5l-1.4 2.1 1.4 2.1H6"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+            opacity="0.9"
           />
         </svg>
       );
+
     case "projects":
       return (
         <svg {...common}>
-          <path d="M4 7h16v12H4V7z" stroke="currentColor" strokeWidth="1.7" />
           <path
-            d="M9 7l1.5-2h3L15 7"
+            d="M8.2 6.8h7.6c1.2 0 2.2 1 2.2 2.2v8c0 1.2-1 2.2-2.2 2.2H8.2C7 19.2 6 18.2 6 17v-8c0-1.2 1-2.2 2.2-2.2Z"
             stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M9 6.8V5.9c0-.9.7-1.6 1.6-1.6h2.8c.9 0 1.6.7 1.6 1.6v.9"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            opacity="0.9"
           />
         </svg>
       );
+
     case "interns":
       return (
         <svg {...common}>
-          <path d="M4 9h16v10H4V9z" stroke="currentColor" strokeWidth="1.7" />
           <path
-            d="M8 9V7a4 4 0 018 0v2"
+            d="M12 12.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M5.5 19.2c1.5-3.4 4-4.8 6.5-4.8s5 1.4 6.5 4.8"
+            stroke="currentColor"
+            strokeWidth="1.8"
             strokeLinecap="round"
+            opacity="0.9"
           />
         </svg>
       );
+
     case "profile":
       return (
         <svg {...common}>
           <path
-            d="M12 12a4 4 0 100-8 4 4 0 000 8z"
+            d="M12 12.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.8"
           />
           <path
-            d="M4 20c1.8-3.5 5-5 8-5s6.2 1.5 8 5"
+            d="M6.4 20c1.2-2.9 3.3-4.2 5.6-4.2s4.4 1.3 5.6 4.2"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.8"
             strokeLinecap="round"
+            opacity="0.9"
           />
         </svg>
       );
+
+    case "back":
+      return (
+        <svg {...common}>
+          <path
+            d="M10 7l-4 5 4 5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 12h12"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            opacity="0.9"
+          />
+        </svg>
+      );
+
     default:
       return null;
   }
 };
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const { user } = useContext(UserContext);
 
   const name = user?.name || "Alex Chen";
@@ -91,11 +149,11 @@ export default function Navbar() {
 
   const items = useMemo(
     () => [
-      { to: "/", end: true, label: "Score", icon: "score" },
-      { to: "/roadmap", label: "Roadmap", icon: "roadmap" },
-      { to: "/projects", label: "Projects", icon: "projects" },
-      { to: "/interns", label: "Interns", icon: "interns" },
-      { to: "/profile", label: "Profile", icon: "profile" },
+      { to: "/student", end: true, label: "Score", icon: "score" },
+      { to: "/student/roadmap", label: "Roadmap", icon: "roadmap" },
+      { to: "/student/projects", label: "Projects", icon: "projects" },
+      { to: "/student/interns", label: "Interns", icon: "interns" },
+      { to: "/student/profile", label: "Profile", icon: "profile" },
     ],
     []
   );
@@ -114,16 +172,13 @@ export default function Navbar() {
 
   const onDockMove = (e) => {
     if (!dockRef.current) return;
-
     const rect = dockRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-
     rafRef.current = requestAnimationFrame(() => {
-      // TUNED: less aggressive, more “professional”
-      const maxDist = 110;  // smaller = tighter influence
-      const maxScale = 1.19; // smaller = less zoom
+      const maxDist = 110;
+      const maxScale = 1.19;
 
       itemRefs.current.forEach((el) => {
         if (!el) return;
@@ -134,7 +189,7 @@ export default function Navbar() {
 
         const t = Math.max(0, 1 - dist / maxDist);
         const scale = 1 + (maxScale - 1) * t;
-        const lift = 4.5 * t; // smaller lift
+        const lift = 4.5 * t;
 
         el.style.setProperty("--dock-scale", scale.toFixed(3));
         el.style.setProperty("--dock-lift", `${lift.toFixed(2)}px`);
@@ -146,6 +201,7 @@ export default function Navbar() {
 
   return (
     <>
+      {/* top header */}
       <header className="navbar">
         <div className="logo">
           <div className="logo-icon" />
@@ -167,28 +223,42 @@ export default function Navbar() {
         </div>
       </header>
 
+      {/* bottom dock */}
       <nav
         ref={dockRef}
         className="bottom-nav dock"
-        aria-label="Bottom navigation"
         onMouseMove={onDockMove}
         onMouseLeave={resetDock}
       >
         {items.map((it, idx) => (
           <NavLink
-            key={it.label}
+            key={it.to}
             to={it.to}
             end={it.end}
             className={navClass}
-            aria-label={it.label}
-            data-tip={it.label}
             ref={(el) => (itemRefs.current[idx] = el)}
+            data-tip={it.label}
           >
             <span className="dock-icon">
               <Icon name={it.icon} />
             </span>
           </NavLink>
         ))}
+
+        {/* Back button at the end (bottom of navbar) */}
+        <button
+          type="button"
+          className="dock-item"
+          onClick={() => navigate("/")}
+          ref={(el) => (itemRefs.current[items.length] = el)}
+          data-tip="Back"
+          aria-label="Back to landing"
+          title="Back"
+        >
+          <span className="dock-icon">
+            <Icon name="back" />
+          </span>
+        </button>
       </nav>
     </>
   );

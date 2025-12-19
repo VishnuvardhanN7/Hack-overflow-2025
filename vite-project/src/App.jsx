@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
-import AppBackground from "./components/AppBackground";
+import LandingPage from "./pages/LandingPage";
+import Recruiter from "./pages/Recruiter";              // ✅ NEW
+import StudentLayout from "./pages/StudentLayout";
 
 import Dashboard from "./pages/Dashboard";
 import SkillsRoadmap from "./pages/SkillsRoadmap";
@@ -11,18 +12,26 @@ import "./styles/global.css";
 
 export default function App() {
   return (
-    <>
-      <AppBackground />
+    <Routes>
+      {/* Landing */}
+      <Route path="/" element={<LandingPage />} />
 
-      <Navbar />
+      {/* Student dashboard area */}
+      <Route path="/student" element={<StudentLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="roadmap" element={<SkillsRoadmap />} />
+        <Route path="profile" element={<Profile />} />
 
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/roadmap" element={<SkillsRoadmap />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </>
+        {/* Optional placeholders so Navbar links don't 404 */}
+        <Route path="projects" element={<div className="page">Projects (coming soon)</div>} />
+        <Route path="interns" element={<div className="page">Interns (coming soon)</div>} />
+      </Route>
+
+      {/* ✅ Recruiter dashboard page */}
+      <Route path="/recruiter" element={<Recruiter />} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
